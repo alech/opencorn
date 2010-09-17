@@ -1,0 +1,36 @@
+Every user creates a private/public keypair on a smartcard. The user
+signs the string 'ClosePopcorn!!!!1ELF' and sends this file encrypted
+to all board members and keeps it safe (this will be the file which is
+used for revocation, if needed).
+
+The verification controller(tm) has a copy of all public keys which are
+allowed to enter. They are in a directory, where the filenames are the
+handles of the users who are allowed to enter.
+
+We create a list of those keys using
+$ sha512sum * | sort -n
+
+This list is signed with a OpenPGP key whose password is 2/5
+secret shared between the board members. Thus, 2 board members can
+work together to add a person to the list.
+
+As revocation is more time-critical then adding people to the list,
+there is also a revocation directory which contains the revocation files
+for the users. The files can be added to the directory by anyone using
+an interface yet to be decided (possibly using an anonymous SSH login which
+allows a user to add a file if the signature is valid and by a user who
+is in the accepted list).
+
+To open the door, the user inserts his smartcard and signs a challenge
+of the form »echo -n "OpenCorn"; date +%012s« using pkcs15-crypt.
+The verification controller verifies that the signature is valid and comes
+from a member which is in the accepted list and whose key has not been
+revoked. If that is the case, it opens the door.
+
+The handle, public key, as well as signature of the challenge are stored
+in the log. As this log may contain sensitive data, the log will be encrypted
+with an OpenGPG key whose password is 3/5 secret shared between the board
+members. This key is exchanged regularly and the board members are told
+regularly to delete the old keys if they see no need in keeping them.
+If there is a reason to open the log, 3/5 board members can work together
+to decrypt it.
