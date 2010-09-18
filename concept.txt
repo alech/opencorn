@@ -7,19 +7,19 @@ The verification controller(tm) has a copy of all public keys which are
 allowed to enter. They are in a directory, where the filenames are the
 handles of the users who are allowed to enter.
 
-We create a list of those keys using
-$ sha512sum * | sort -n
-
-This list is signed with a OpenPGP key whose password is 2/5
-secret shared between the board members. Thus, 2 board members can
-work together to add a person to the list.
+This directory is kept under version control using git. Board members are
+supposed to tag the commits with a GPG signature. The verification controller
+only uses the state of the git repository which has at least two valid
+board member signatures on it, thus assuring that at least two board
+members have accepted the change in the list.
 
 As revocation is more time-critical then adding people to the list,
-there is also a revocation directory which contains the revocation files
-for the users. The files can be added to the directory by anyone using
+there is also a revocation repository which contains the revocation files
+for the users. The files can be added to the repository by anyone using
 an interface yet to be decided (possibly using an anonymous SSH login which
 allows a user to add a file if the signature is valid and by a user who
-is in the accepted list).
+is in the accepted list). Signing changes to the revocation repository
+is encouraged, but not actively checked.
 
 To open the door, the user inserts his smartcard and signs a challenge
 of the form »echo -n "OpenCorn"; date +%012s« using pkcs15-crypt.
