@@ -38,6 +38,7 @@ keys = `pkcs15-tool -k`
 key_id = keys[/ID          : ([a-f0-9]+)/, 1]
 key_der = `pkcs15-tool --read-public-key #{key_id} | openssl rsa -pubin -inform PEM -outform DER`
 File.open "#{KEYPATH}/#{nick}.der", 'w' do |f| f.write key_der end
+# TODO: git commit
 
 # create revocation blob
 tf = Tempfile.new 'revo-blob-signed'
@@ -47,3 +48,4 @@ puts Base64.encode64(tf.read)
 system "wipe -f -i #{tf.path}"
 
 # TODO: send revo blob encrypted to board members
+# together with commit ID, so that they know what to tag
