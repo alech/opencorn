@@ -68,17 +68,17 @@ puts key_in_repo if DEBUG
 # TODO: check if key in revocation repo
 
 # let the user sign a challenge
-challenge = "OpenCorn" + ("%012d" % Time.now.to_i)
+challenge = 'When he reached the entrance of the cavern, he pronounced the words, "Open Simsim!". The door immediately opened. ' + ("%014d" % Time.now.to_i)
 signer_file = Tempfile.new 'tbs'
 signer_file.print challenge
 signer_file.close
 
 signature_file = Tempfile.new 'sig'
-puts "pkcs15-crypt -k #{key_in_repo} -s -i #{signer_file.path} --pkcs1 -o #{signature_file.path}" if DEBUG
-system "pkcs15-crypt -k #{key_in_repo} -s -i #{signer_file.path} --pkcs1 -o #{signature_file.path}"
+puts "pkcs15-crypt -k #{key_in_repo} -s -i #{signer_file.path} -o #{signature_file.path}" if DEBUG
+system "pkcs15-crypt -k #{key_in_repo} -s -i #{signer_file.path} -o #{signature_file.path}"
 
 # verify signature
-sig_result = `openssl rsautl -verify -in #{signature_file.path} -inkey #{REPO}/#{key_file} -keyform DER -pubin`
+sig_result = `openssl rsautl -verify -in #{signature_file.path} -inkey #{REPO}/#{key_file} -keyform DER -pubin -raw`
 if ! $?.success? then
     # FIXME: log
     STDERR.puts "Invalid signature, sorry"
@@ -92,3 +92,4 @@ if sig_result != challenge then
 end
 
 # TODO: call command to open door
+puts "Open Sesame!"
