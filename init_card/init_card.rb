@@ -38,11 +38,11 @@ keys = `pkcs15-tool -k`
 key_id = keys[/ID          : ([a-f0-9]+)/, 1]
 key_der = `pkcs15-tool --read-public-key #{key_id} | openssl rsa -pubin -inform PEM -outform DER`
 File.open "#{KEYPATH}/#{nick}.der", 'w' do |f| f.write key_der end
-# TODO: git commit
+# TODO: git commit key to the repository
 
 # create revocation blob
 tf = Tempfile.new 'revo-blob-signed'
-revo_blob = `pkcs15-crypt -s -i revocation.txt --pkcs1 -o #{tf.path}`
+revo_blob = `pkcs15-crypt -s -i revocation.txt -o #{tf.path}`
 puts "Your revocation blob, please keep this safe in case you need to revoke your key"
 puts Base64.encode64(tf.read)
 system "wipe -f -i #{tf.path}"
