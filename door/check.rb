@@ -2,6 +2,7 @@
 
 require 'pp'
 require 'digest/sha1'
+require 'tempfile'
 require 'rubygems'
 require 'git'
 
@@ -46,9 +47,11 @@ REPO = '/home/alech/devel/opencorn/testing/accepted_signed'
 g = Git.open(REPO)
 
 key_in_repo = nil
+key_file    = nil
 key_hashes.each_with_index do |hash, index|
     # find blobs in HEAD that have the correct git hash
     if g.object('HEAD').gtree.blobs.to_a.find { |entry| entry[1].objectish == hash } then
+        key_file    = entry[0]
         key_in_repo = keys[index]
         break
     end
@@ -61,3 +64,30 @@ if ! key_in_repo then
 end
 
 puts key_in_repo if DEBUG
+
+# TODO: check if key in revocation repo
+
+# let the user sign a challenge
+challenge = "OpenCorn" + ("%012d" % Time.now.to_i)
+signer_file = Tempfile.new 'tbs'
+signer_file.print challenge
+signer_file.close
+
+signature_file = Tempfile.new 'sig'
+system "pkcs15-crypt -k #{key_in_repo} -s -i #{signer_file.path} --pkcs1 -o #{signature_file.path}"
+
+# verify signature
+sig_result = `openssl rsautl -verify -in #{signature_file.path} -inkey #{REPO}/#{key_file} -keyform DER -pubin`
+if ! $?.success? then
+    # FIXME: log
+    STDERR.puts "Invalid signature, sorry"
+    exit 2
+end
+
+if sig_result != challenge then
+    # FIXME: log
+    STDERR.puts "Signature does not match challenge."
+    exit 3
+end
+
+# TODO: call command to open door
