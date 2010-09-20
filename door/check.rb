@@ -6,7 +6,7 @@ require 'tempfile'
 require 'rubygems'
 require 'git'
 
-DEBUG = false
+DEBUG = true
 
 # query keys 
 keys = []
@@ -50,8 +50,8 @@ key_in_repo = nil
 key_file    = nil
 key_hashes.each_with_index do |hash, index|
     # find blobs in HEAD that have the correct git hash
-    if g.object('HEAD').gtree.blobs.to_a.find { |entry| entry[1].objectish == hash } then
-        key_file    = entry[0]
+    if blob = g.object('HEAD').gtree.blobs.to_a.find { |entry| entry[1].objectish == hash } then
+        key_file    = blob[0]
         key_in_repo = keys[index]
         break
     end
@@ -74,6 +74,7 @@ signer_file.print challenge
 signer_file.close
 
 signature_file = Tempfile.new 'sig'
+puts "pkcs15-crypt -k #{key_in_repo} -s -i #{signer_file.path} --pkcs1 -o #{signature_file.path}" if DEBUG
 system "pkcs15-crypt -k #{key_in_repo} -s -i #{signer_file.path} --pkcs1 -o #{signature_file.path}"
 
 # verify signature
