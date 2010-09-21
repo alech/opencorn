@@ -22,7 +22,7 @@ is in the accepted list). Signing changes to the revocation repository
 is encouraged, but not actively checked.
 
 To open the door, the user inserts his smartcard and signs a challenge
-of the form »echo -n "OpenCorn"; date +%012s« using pkcs15-crypt.
+containing a fixed text, a random nonce and a timestamp using pkcs15-crypt.
 The verification controller verifies that the signature is valid and comes
 from a member which is in the accepted list and whose key has not been
 revoked. If that is the case, it opens the door.
