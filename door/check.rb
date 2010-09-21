@@ -10,6 +10,7 @@ DEBUG = true
 
 # query keys 
 keys = []
+key_lengths = []
 keys_result = `pkcs15-tool --list-keys -w`
 keys_result.split(/\n\n/).each do |key|
     pp key if DEBUG
@@ -25,11 +26,21 @@ keys_result.split(/\n\n/).each do |key|
              || ! line[/local/]) then
              next # access flags are weird, skip
         end
+        if line[/ModLength/] then
+            if (! line[/1024/] || !line[/2048/]) then
+                next # unsupported key length
+            else
+                key_lengths << line[/(\d+)/, 1]
+            end
+        end
         if key_id = line[/ID          : ([0-9a-f]+)/, 1] then
             keys << key_id
+
         end
     end
 end
+
+pp key_lengths if DEBUG
 
 # get DER-encoded public keys
 keys_der = keys.map do |k|
@@ -48,11 +59,13 @@ g = Git.open(REPO)
 
 key_in_repo = nil
 key_file    = nil
+key_length  = nil
 key_hashes.each_with_index do |hash, index|
     # find blobs in HEAD that have the correct git hash
     if blob = g.object('HEAD').gtree.blobs.to_a.find { |entry| entry[1].objectish == hash } then
         key_file    = blob[0]
         key_in_repo = keys[index]
+        key_length  = key_lengths[index]
         break
     end
 end
@@ -69,6 +82,9 @@ puts key_in_repo if DEBUG
 
 # let the user sign a challenge
 challenge = 'When he reached the entrance of the cavern, he pronounced the words, "Open Simsim!". The door immediately opened. ' + ("%014d" % Time.now.to_i)
+if key_length == 2048 then
+    challenge = challenge + challenge # we just double it if key length is 2048
+end
 signer_file = Tempfile.new 'tbs'
 signer_file.print challenge
 signer_file.close

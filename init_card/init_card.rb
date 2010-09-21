@@ -42,7 +42,7 @@ File.open "#{KEYPATH}/#{nick}.der", 'w' do |f| f.write key_der end
 
 # create revocation blob
 tf = Tempfile.new 'revo-blob-signed'
-revo_blob = `pkcs15-crypt -s -i revocation.txt -o #{tf.path}`
+revo_blob = `pkcs15-crypt -s -i revocation#{keysize}.txt -o #{tf.path}`
 puts "Your revocation blob, please keep this safe in case you need to revoke your key"
 puts Base64.encode64(tf.read)
 system "wipe -f -i #{tf.path}"
