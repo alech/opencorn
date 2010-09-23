@@ -6,6 +6,7 @@ require 'tempfile'
 require 'rubygems'
 require 'git'
 require 'openssl'
+require 'opencorn/config'
 
 DEBUG = true
 
@@ -55,9 +56,7 @@ end
 pp key_hashes if DEBUG
 
 # check if one of the keys is present in the git repository
-# FIXME: REPO URI from config
-REPO = '/home/alech/devel/opencorn/testing/accepted_signed'
-g = Git.open(REPO)
+g = Git.open(OpenCorn::Config.instance.cfg['ACCEPTED_SIGNED_REPO'])
 
 key_in_repo = nil
 key_file    = nil
@@ -82,9 +81,7 @@ end
 
 puts key_in_repo if DEBUG
 
-# FIXME: REVO_REPO from config
-REVO_REPO = '/home/alech/devel/opencorn/testing/revocation'
-g_r = Git.open(REVO_REPO)
+g_r = Git.open(OpenCorn::Config.instance.cfg['REVOCATION_REPO'])
 if g_r.object('HEAD').gtree.blobs.to_a.find { |entry| entry[1].objectish == key_hash } then
     STDERR.puts "Sorry, key has been revoked."
     exit 2
