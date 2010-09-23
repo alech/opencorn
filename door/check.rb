@@ -56,7 +56,7 @@ end
 pp key_hashes if DEBUG
 
 # check if one of the keys is present in the git repository
-g = Git.open(OpenCorn::Config.cfg['ACCEPTED_SIGNED_REPO'])
+g = Git.open(OpenCorn::Config['ACCEPTED_SIGNED_REPO'])
 
 key_in_repo = nil
 key_file    = nil
@@ -81,7 +81,7 @@ end
 
 puts key_in_repo if DEBUG
 
-g_r = Git.open(OpenCorn::Config.cfg['REVOCATION_REPO'])
+g_r = Git.open(OpenCorn::Config['REVOCATION_REPO'])
 if g_r.object('HEAD').gtree.blobs.to_a.find { |entry| entry[1].objectish == key_hash } then
     STDERR.puts "Sorry, key has been revoked."
     exit 2

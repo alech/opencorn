@@ -15,8 +15,8 @@ module OpenCorn
 				exit 10
 			end
 		end
-		def self.cfg
-			self.instance.cfg
+		def self.[](key)
+			self.instance.cfg[key]
 		end
 	end
 end
