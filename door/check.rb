@@ -5,6 +5,7 @@ require 'digest/sha1'
 require 'tempfile'
 require 'rubygems'
 require 'git'
+require 'openssl'
 
 DEBUG = true
 
@@ -90,20 +91,17 @@ if g_r.object('HEAD').gtree.blobs.to_a.find { |entry| entry[1].objectish == key_
 end
 
 # let the user sign a challenge
-challenge = 'When he reached the entrance of the cavern, he pronounced the words, "Open Simsim!". The door immediately opened. ' + ("%014d" % Time.now.to_i)
-if key_length == 2048 then
-    challenge = challenge + challenge # we just double it if key length is 2048
-end
+challenge = 'OpenCorn' + ("%011d" % Time.now.to_i) + OpenSSL::Random.random_bytes(13)
 signer_file = Tempfile.new 'tbs'
 signer_file.print challenge
 signer_file.close
 
 signature_file = Tempfile.new 'sig'
-puts "pkcs15-crypt -k #{key_in_repo} -s -i #{signer_file.path} -o #{signature_file.path}" if DEBUG
-system "pkcs15-crypt -k #{key_in_repo} -s -i #{signer_file.path} -o #{signature_file.path}"
+puts "pkcs15-crypt -k #{key_in_repo} -s -i #{signer_file.path} -o #{signature_file.path} --pkcs1 --sha-256" if DEBUG
+system "pkcs15-crypt -k #{key_in_repo} -s -i #{signer_file.path} -o #{signature_file.path} --pkcs1 --sha-256"
 
 # verify signature
-sig_result = `openssl rsautl -verify -in #{signature_file.path} -inkey #{REPO}/#{key_file} -keyform DER -pubin -raw`
+sig_result = `openssl rsautl -verify -in #{signature_file.path} -inkey #{REPO}/#{key_file} -keyform DER -pubin -raw`[-32,32]
 if ! $?.success? then
     # FIXME: log
     STDERR.puts "Invalid signature, sorry"
