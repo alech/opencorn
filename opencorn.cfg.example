@@ -4,3 +4,4 @@ REVOCATION_REPO: /home/alech/devel/opencorn/testing/revocation
 PINPAD: true
 GNUPGHOME: /home/alech/devel/opencorn/testing/gpghome
 MAIL_FROM: opencorn@yourhackerspace.net (OpenCorn system)
+ETC: /home/alech/devel/opencorn/etc

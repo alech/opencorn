@@ -59,7 +59,7 @@ end
 
 # create revocation blob
 tf = Tempfile.new 'revo-blob-signed'
-revo_blob = run_tool("pkcs15-crypt", "-s -i #{File.dirname(File.expand_path $0)}/revocation.txt -o #{tf.path} --pkcs1 --sha-256", true)
+revo_blob = run_tool("pkcs15-crypt", "-s -i #{OpenCorn::Config['ETC']}/revocation.txt -o #{tf.path} --pkcs1 --sha-256", true)
 if $? != 0 then
 	STDERR.puts "Error creating revocation blob."
 	exit 5
