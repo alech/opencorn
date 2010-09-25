@@ -30,6 +30,9 @@ if OpenCorn::Config['GNUPGHOME'] then
 	ENV['GNUPGHOME'] = OpenCorn::Config['GNUPGHOME']
 end
 
+# update accepted repo
+Git.open(OpenCorn::Config['ACCEPTED_REPO']).pull
+
 tmpdir = Dir.mktmpdir
 # check out in tmpdir
 g = Git.clone(OpenCorn::Config['ACCEPTED_REPO'], tmpdir)
