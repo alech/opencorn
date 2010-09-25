@@ -18,6 +18,7 @@ keys_result.split(/\n\n/).each do |key|
 	pp key if DEBUG
 	key.split(/\n/).each do |line|
 		if line[/Usage/] && ! line[/sign/] then
+			puts "Key usage is not sign, skipping" if DEBUG
 			next # not used for signing, skip
 		end
 		# FIXME
@@ -26,16 +27,18 @@ keys_result.split(/\n\n/).each do |key|
 		if line[/Access Flags/] && \
 			(! line[/alwaysSensitive/] || ! line[/neverExtract/] \
 			 || ! line[/local/]) then
+			puts "Weird access flags, skipping" if DEBUG
 			 next # access flags are weird, skip
 		end
 		if line[/ModLength/] then
-			if (! line[/1024/] || !line[/2048/]) then
+			if (! line[/1024/] && ! line[/2048/]) then
+				puts "Unsupported key length, skipping" if DEBUG
 				next # unsupported key length
 			else
 				key_lengths << line[/(\d+)/, 1]
 			end
 		end
-		if key_id = line[/ID		  : ([0-9a-f]+)/, 1] then
+		if key_id = line[/ID          : ([0-9a-f]+)/, 1] then
 			keys << key_id
 		end
 	end
@@ -93,11 +96,12 @@ signer_file.print challenge
 signer_file.close
 
 signature_file = Tempfile.new 'sig'
+# FIXME: pinpad support
 puts "pkcs15-crypt -k #{key_in_repo} -s -i #{signer_file.path} -o #{signature_file.path} --pkcs1 --sha-256" if DEBUG
 system "pkcs15-crypt -k #{key_in_repo} -s -i #{signer_file.path} -o #{signature_file.path} --pkcs1 --sha-256"
 
 # verify signature
-sig_result = `openssl rsautl -verify -in #{signature_file.path} -inkey #{REPO}/#{key_file} -keyform DER -pubin -raw`[-32,32]
+sig_result = `openssl rsautl -verify -in #{signature_file.path} -inkey #{OpenCorn::Config['ACCEPTED_SIGNED_REPO']}/#{key_file} -keyform DER -pubin -raw`[-32,32]
 if ! $?.success? then
 	# FIXME: log
 	STDERR.puts "Invalid signature, sorry"
