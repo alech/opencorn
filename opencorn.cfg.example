@@ -1,3 +1,6 @@
+ACCEPTED_REPO: /home/alech/devel/opencorn/testing/accepted
 ACCEPTED_SIGNED_REPO: /home/alech/devel/opencorn/testing/accepted_signed
 REVOCATION_REPO: /home/alech/devel/opencorn/testing/revocation
 PINPAD: true
+GNUPGHOME: /home/alech/devel/opencorn/testing/gpghome
+MAIL_FROM: opencorn@yourhackerspace.net (OpenCorn system)

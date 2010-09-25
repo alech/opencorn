@@ -5,6 +5,8 @@ require 'base64'
 require 'opencorn/config'
 require 'rubygems'
 require 'git'
+require 'gpgme'
+require 'mail'
 
 DEBUG = false
 
@@ -83,3 +85,18 @@ commit_id = g.commit("[init_card] #{nick}.der")[/([0-9a-f]+)\]/, 1]
 g.push
 
 # send commit ID and nickname to board members (take email addresses from keyring)
+if OpenCorn::Config['GNUPGHOME'] then
+	ENV['GNUPGHOME'] = OpenCorn::Config['GNUPGHOME']
+end
+gpg = GPGME::Ctx.new
+gpg.each_key do |key|
+	next if key.owner_trust == 5 # this is our own key
+	mail = Mail.new do
+		from OpenCorn::Config['MAIL_FROM']
+		to key.uids[0].email
+		subject "New key for #{nick}, please tag #{commit_id}"
+		body "A new key for #{nick} has been added to the repository using init_card.\n" + \
+		     "Please create a signed tag for git commit #{commit_id}."
+	end
+	mail.deliver
+end
