@@ -82,5 +82,4 @@ g.pull
 commit_id = g.commit("[init_card] #{nick}.der")[/([0-9a-f]+)\]/, 1]
 g.push
 
-# TODO: send revo blob encrypted to board members
-# together with commit ID, so that they know what to tag
+# send commit ID and nickname to board members (take email addresses from keyring)

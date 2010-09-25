@@ -4,6 +4,7 @@ require 'rubygems'
 require 'git'
 require 'pp'
 require 'fileutils'
+require 'opencorn/config'
 
 DEBUG = false
 
@@ -25,13 +26,13 @@ def signer_id(tag)
 	result[/key ID ([0-9A-F]{8})/, 1]
 end
 
-ENV['GNUPGHOME'] = '/tmp' # FIXME: dir from config with board member keyring
-SOURCE_REPOSITORY = '/home/alech/devel/opencorn/testing/accepted'
-DEST_REPOSITORY = '/home/alech/devel/opencorn/testing/accepted_signed'
+if OpenCorn::Config['GNUPGHOME'] then
+	ENV['GNUPGHOME'] = OpenCorn::Config['GNUPGHOME']
+end
 
 tmpdir = Dir.mktmpdir
 # check out in tmpdir
-g = Git.clone(SOURCE_REPOSITORY, tmpdir)
+g = Git.clone(OpenCorn::Config['ACCEPTED_REPO'], tmpdir)
 
 object_signatures = {}
 most_current_signed_object = nil
@@ -69,8 +70,7 @@ end
 g.reset_hard(most_current_signed_object)
 
 begin
-FileUtils.rm_r DEST_REPOSITORY, :secure => true
+FileUtils.rm_r OpenCorn::Config['ACCEPTED_SIGNED_REPO'], :secure => true
 rescue # ignore errors deleting the directory
 end
-# FIXME :depth seems to be broken
-g2 = Git.clone(tmpdir, DEST_REPOSITORY, :depth => 1)
+Git.clone(tmpdir, OpenCorn::Config['ACCEPTED_SIGNED_REPO'], :depth => 1)
