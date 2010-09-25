@@ -4,6 +4,7 @@ require 'rubygems'
 require 'git'
 require 'pp'
 require 'fileutils'
+require 'tempfile'
 require 'opencorn/config'
 
 DEBUG = false
