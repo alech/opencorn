@@ -33,6 +33,9 @@ end
 # update accepted repo
 Git.open(OpenCorn::Config['ACCEPTED_REPO']).pull
 
+# update revocation repo
+Git.open(OpenCorn::Config['REVOCATION_REPO']).pull
+
 tmpdir = Dir.mktmpdir
 # check out in tmpdir
 g = Git.clone(OpenCorn::Config['ACCEPTED_REPO'], tmpdir)
