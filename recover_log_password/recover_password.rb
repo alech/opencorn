@@ -10,7 +10,7 @@ s = SecretSharing::Shamir.new(k)
 (1..k).each do |i|
 	puts "Please enter share number #{i}:"
 	s << STDIN.readline.chomp
-	puts "\e[H\e[2J"
+	print "\e[H\e[2J"
 end
 
 puts "The password is: #{s.secret_password}"

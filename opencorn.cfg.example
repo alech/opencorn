@@ -7,3 +7,4 @@ MAIL_FROM: opencorn@yourhackerspace.net
 ETC: /home/alech/devel/opencorn/etc
 SECRETSHARING_K: 3
 LOGKEY_EXPIRY: 1m
+GNUPGHOME_LOG: /home/alech/devel/opencorn/testing/gpghome_log

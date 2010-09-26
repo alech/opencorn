@@ -54,7 +54,10 @@ s.create_random_secret
 puts passphrase if DEBUG
 create_gpg_key(s.secret_password, k, n)
 
-# TODO: export public key to GNUPGHOME_LOG keyring
+# export public key to GNUPGHOME_LOG keyring
+pubkey = GPGME.export('', {:armor => true})
+ENV['GNUPGHOME'] = OpenCorn::Config['GNUPGHOME_LOG']
+GPGME.import(pubkey)
 
 # send encrypted mails to board members with shares and secring/pubring
 ENV['GNUPGHOME'] = OpenCorn::Config['GNUPGHOME']
