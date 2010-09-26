@@ -63,15 +63,19 @@ gpg = GPGME::Ctx.new
 i = 0
 gpg.each_key do |key|
 	next if key.owner_trust == 5 # this is our own key
-	plain_body = "A new logging key has been created. Your secret share is the following:\n" \
-	           + "#{s.shares[i]}\n\n" \
-	           + "Find the encrypted secring.gpg and pubring.pgp attached."
-	enc_body = GPGME.encrypt([key], plain_body, {:armor => true, :always_trust => true})
+	plain_body = "A new logging key has been created. Your secret share" \
+	             "is the following:\n" \
+	             "#{s.shares[i]}\n\n" \
+	             "Find the encrypted secring.gpg and pubring.pgp attached."
+	enc_body = GPGME.encrypt([key], plain_body,
+	                        {:armor => true, :always_trust => true})
 	File.open "#{tmpdir}/secring.gpg.gpg", 'w' do |f|
-		f.write GPGME.encrypt([key], File.read("#{tmpdir}/secring.gpg"), {:always_trust => true})
+		f.write GPGME.encrypt([key], File.read("#{tmpdir}/secring.gpg"),
+		                     {:always_trust => true})
 	end
 	File.open "#{tmpdir}/pubring.gpg.gpg", 'w' do |f|
-		f.write GPGME.encrypt([key], File.read("#{tmpdir}/pubring.gpg"), {:always_trust => true})
+		f.write GPGME.encrypt([key], File.read("#{tmpdir}/pubring.gpg"),
+		                      {:always_trust => true})
 	end
 	mail = Mail.new do
 		from OpenCorn::Config['MAIL_FROM']

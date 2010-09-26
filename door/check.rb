@@ -48,7 +48,8 @@ pp key_lengths if DEBUG
 
 # get DER-encoded public keys
 keys_der = keys.map do |k|
-	`pkcs15-tool --read-public-key #{k} | openssl rsa -inform pem -outform der -pubin`
+	`pkcs15-tool --read-public-key #{k} | \
+	openssl rsa -inform pem -outform der -pubin`
 end
 
 # compute git hash on the keys
@@ -66,7 +67,8 @@ key_length  = nil
 key_hash    = nil
 key_hashes.each_with_index do |hash, index|
 	# find blobs in HEAD that have the correct git hash
-	if blob = g.object('HEAD').gtree.blobs.to_a.find { |entry| entry[1].objectish == hash } then
+	if blob = g.object('HEAD').gtree.blobs.to_a. \
+	            find { |entry| entry[1].objectish == hash } then
 		key_file    = blob[0]
 		key_in_repo = keys[index]
 		key_length  = key_lengths[index]
@@ -84,24 +86,30 @@ end
 puts key_in_repo if DEBUG
 
 g_r = Git.open(OpenCorn::Config['REVOCATION_REPO'])
-if g_r.object('HEAD').gtree.blobs.to_a.find { |entry| entry[1].objectish == key_hash } then
+if g_r.object('HEAD').gtree.blobs.to_a. \
+       find { |entry| entry[1].objectish == key_hash } then
 	STDERR.puts "Sorry, key has been revoked."
 	exit 2
 end
 
 # let the user sign a challenge
-challenge = 'OpenCorn' + ("%011d" % Time.now.to_i) + OpenSSL::Random.random_bytes(13)
+challenge = 'OpenCorn' + ("%011d" % Time.now.to_i) \
+           + OpenSSL::Random.random_bytes(13)
 signer_file = Tempfile.new 'tbs'
 signer_file.print challenge
 signer_file.close
 
 signature_file = Tempfile.new 'sig'
 # FIXME: pinpad support
-puts "pkcs15-crypt -k #{key_in_repo} -s -i #{signer_file.path} -o #{signature_file.path} --pkcs1 --sha-256" if DEBUG
-system "pkcs15-crypt -k #{key_in_repo} -s -i #{signer_file.path} -o #{signature_file.path} --pkcs1 --sha-256"
+puts "pkcs15-crypt -k #{key_in_repo} -s -i #{signer_file.path} " \
+     "-o #{signature_file.path} --pkcs1 --sha-256" if DEBUG
+system "pkcs15-crypt -k #{key_in_repo} -s -i #{signer_file.path} " \
+       "-o #{signature_file.path} --pkcs1 --sha-256"
 
 # verify signature
-sig_result = `openssl rsautl -verify -in #{signature_file.path} -inkey #{OpenCorn::Config['ACCEPTED_SIGNED_REPO']}/#{key_file} -keyform DER -pubin -raw`[-32,32]
+sig_result = `openssl rsautl -verify -in #{signature_file.path} \
+             -inkey #{OpenCorn::Config['ACCEPTED_SIGNED_REPO']}/#{key_file} \
+             -keyform DER -pubin -raw`[-32,32]
 if ! $?.success? then
 	# FIXME: log
 	STDERR.puts "Invalid signature, sorry"

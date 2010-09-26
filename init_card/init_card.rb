@@ -41,7 +41,8 @@ nick = ""
 print "Please enter your nickname (alphanumeric): "
 nick = STDIN.readline.chomp[/^([a-zA-Z0-9]+)/, 1]
 
-if ! run_tool("pkcs15-init",  "--create-pkcs15 --profile pkcs15+onepin --use-default-transport-key --label '#{nick}'") then
+if ! run_tool("pkcs15-init",  "--create-pkcs15 --profile pkcs15+onepin " \
+              "--use-default-transport-key --label '#{nick}'") then
 	STDERR.puts "Error running pkcs15-init --create-pkcs15"
 	exit 3
 end
@@ -59,32 +60,38 @@ end
 
 # create revocation blob
 tf = Tempfile.new 'revo-blob-signed'
-revo_blob = run_tool("pkcs15-crypt", "-s -i #{OpenCorn::Config['ETC']}/revocation.txt -o #{tf.path} --pkcs1 --sha-256", true)
+revo_blob = run_tool("pkcs15-crypt", "-s -i " \
+                     "#{OpenCorn::Config['ETC']}/revocation.txt " \
+                     "-o #{tf.path} --pkcs1 --sha-256", true)
 if $? != 0 then
 	STDERR.puts "Error creating revocation blob."
 	exit 5
 end
-puts "Your revocation blob, please keep this safe in case you need to revoke your key"
+puts "Your revocation blob, please keep this safe in case you need " \
+     "to revoke your key"
 puts Base64.encode64(tf.read)
 system "wipe -f -i #{tf.path}"
 
 # store key in git repository and push it to origin
 keys = run_tool("pkcs15-tool", "-k", true)
 key_id = keys[/ID          : ([a-f0-9]+)/, 1]
-key_der = run_tool("pkcs15-tool",  "--read-public-key #{key_id} | openssl rsa -pubin -inform PEM -outform DER", true)
+key_der = run_tool("pkcs15-tool",  "--read-public-key #{key_id} | openssl " \
+                                   "rsa -pubin -inform PEM -outform DER", true)
 if key_der.size == 0 then
 	STDERR.puts "Error reading public key from card."
 	exit 6
 end
 
-File.open "#{OpenCorn::Config['ACCEPTED_REPO']}/#{nick}.der", 'w' do |f| f.write key_der end
+File.open "#{OpenCorn::Config['ACCEPTED_REPO']}/#{nick}.der", 'w' do |f|
+	f.write key_der
+end
 g = Git.open(OpenCorn::Config['ACCEPTED_REPO'])
 g.add "#{nick}.der"
 g.pull
 commit_id = g.commit("[init_card] #{nick}.der")[/([0-9a-f]+)\]/, 1]
 g.push
 
-# send commit ID and nickname to board members (take email addresses from keyring)
+# send commit ID and nickname to board members (email addresses from keyring)
 if OpenCorn::Config['GNUPGHOME'] then
 	ENV['GNUPGHOME'] = OpenCorn::Config['GNUPGHOME']
 end
@@ -95,7 +102,8 @@ gpg.each_key do |key|
 		from OpenCorn::Config['MAIL_FROM']
 		to key.uids[0].email
 		subject "New key for #{nick}, please tag #{commit_id}"
-		body "A new key for #{nick} has been added to the repository using init_card.\n" + \
+		body "A new key for #{nick} has been added to the repository using " \
+		     "init_card.\n" \
 		     "Please create a signed tag for git commit #{commit_id}."
 	end
 	mail.deliver

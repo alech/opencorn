@@ -54,7 +54,8 @@ g.tags.each do |tag|
 	object_id = tag.contents_array[0][/object ([a-f0-9]+)/, 1]
 	puts "Refers to object id #{object_id}" if DEBUG
 	if valid_signature(tag.name) then
-		puts "Valid signature on #{tag.name} by #{signer_id(tag.name)}" if DEBUG
+		puts "Valid signature on #{tag.name} by #{signer_id(tag.name)}" \
+			if DEBUG
 		object_signatures[object_id] ||= {}
 		object_signatures[object_id][signer_id(tag.name)] = 1
 	end
@@ -63,7 +64,8 @@ pp object_signatures if DEBUG
 
 # iterate over all commits to find the first that has more than one signature
 g.log.each do |log|
-	if object_signatures[log.objectish] && object_signatures[log.objectish].keys.size >= 2 then
+	if object_signatures[log.objectish] \
+	&& object_signatures[log.objectish].keys.size >= 2 then
 		most_current_signed_object = log.objectish
 		break
 	end
