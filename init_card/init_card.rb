@@ -50,7 +50,7 @@ end
 # create key
 keysize = ''
 while keysize != '1024' && keysize != '2048' do
-	print "What is your preferred RSA key size (1024k or 2048k)? "
+	print "What is your preferred RSA key size (1024 or 2048)? "
 	keysize = STDIN.readline.chomp
 end
 if ! run_tool("pkcs15-init", "--generate-key rsa/#{keysize} --auth-id 01") then
