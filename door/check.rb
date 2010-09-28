@@ -100,11 +100,20 @@ signer_file.print challenge
 signer_file.close
 
 signature_file = Tempfile.new 'sig'
-# FIXME: pinpad support
-puts "pkcs15-crypt -k #{key_in_repo} -s -i #{signer_file.path} " \
-     "-o #{signature_file.path} --pkcs1 --sha-256" if DEBUG
-system "pkcs15-crypt -k #{key_in_repo} -s -i #{signer_file.path} " \
-       "-o #{signature_file.path} --pkcs1 --sha-256"
+
+if OpenCorn::Config['PINPAD'] then
+  #default is using the pinpad
+  puts "pkcs15-crypt -k #{key_in_repo} -s -i #{signer_file.path} " \
+       "-o #{signature_file.path} --pkcs1 --sha-256 -p -" if DEBUG
+  procstdin = IO::popen("pkcs15-crypt -k #{key_in_repo} -s -i #{signer_file.path} " \
+                        "-o #{signature_file.path} --pkcs1 --sha-256 -p -", "w")
+  procstdin.close()
+else
+  puts "pkcs15-crypt -k #{key_in_repo} -s -i #{signer_file.path} " \
+       "-o #{signature_file.path} --pkcs1 --sha-256" if DEBUG
+  system "pkcs15-crypt -k #{key_in_repo} -s -i #{signer_file.path} " \
+         "-o #{signature_file.path} --pkcs1 --sha-256"
+end
 
 # verify signature
 sig_result = `openssl rsautl -verify -in #{signature_file.path} \
