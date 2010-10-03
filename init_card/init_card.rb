@@ -8,11 +8,15 @@ require 'git'
 require 'gpgme'
 require 'mail'
 
-DEBUG = false
+DEBUG = true
 
 def run_tool(toolname, options, backticks = false)
 	if OpenCorn::Config['PINPAD'] then
-		command = ":|#{toolname} -p - #{options}"
+		if toolname == 'pkcs15-init' then
+			command = "#{toolname} --no-prompt #{options}"
+		else
+			command = ":|#{toolname} -p - #{options}"
+		end
 	else
 		command = "#{toolname} #{options}"
 	end
@@ -31,7 +35,7 @@ if answer[0,1].downcase != 'y' then
 	exit 1
 end
 
-if ! run_tool("pkcs15-init", "-E") then
+if ! system("pkcs15-init", "-E") then
 	STDERR.puts "Error running pkcs15-init -E"
 	exit 2
 end

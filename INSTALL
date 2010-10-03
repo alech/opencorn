@@ -1,0 +1,34 @@
+# Start from a Debian stable base installation
+# Install OpenSC from SVN
+apt-get install subversion
+svn co http://www.opensc-project.org/svn/opensc/trunk opensc
+apt-get install autoconf
+apt-get install pkg-config
+apt-get install libtool
+cd opensc
+autoconf
+# begin a flamewar about autoconf, bang your head on a hard surface
+# or something similar
+autoreconf -f -v -i
+# remember there is ./bootstrap
+./bootstrap
+./configure --prefix=/usr/local
+apt-get install xsltproc
+apt-get install docbook-xsl
+apt-get install libssl-dev libpcsclite-dev pcscd
+./configure --prefix=/usr/local
+apt-get install make
+make && make install
+apt-get install git-core
+git clone git://git.alech.de/opencorn
+apt-get install ruby rubygems
+downloads rubygems-update from rubyforge
+gem install rubygems-update-1.3.7.gem
+cd /var/lib/gems/1.8/bin
+./update_rubygems
+gem install git
+gem install secretsharing
+gem install hashcash
+apt-get install ruby1.8-dev
+apt-get install libgpgme11-dev
+gem install gpgme
