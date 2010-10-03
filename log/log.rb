@@ -21,10 +21,10 @@ module OpenCorn
       writeLog("\x00\x01"+Base64::encode64(gpgout))
       puts "OpenCorn::Log initialized"
     end
-
-    def prng(seed)
-      ctx = Digest::SHA512
-      [ctx.digest("0"+seed),ctx.digest("1"+seed)]
+    
+    def self.prng(seed)
+       ctx = Digest::SHA512
+       [ctx.digest("0"+seed),ctx.digest("1"+seed)]
     end
 
     def writeLog(msg)
@@ -34,7 +34,7 @@ module OpenCorn
     end
 
     def getRand()
-        @seed,out = prng(@seed)
+        @seed,out = Log::prng(@seed)
         out
     end
 
