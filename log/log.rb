@@ -12,6 +12,13 @@ module OpenCorn
 
     def initialize
       @seed=nil
+      @seed = OpenSSL::Random::random_bytes(128)
+      gpgdata = GPGME::Data.from_str(@seed)
+      gpgkeys = GPGME.list_keys(OpenCorn::Config['GPG_LOG_KEYID'])
+      raise "Too many keys for this KeyID" unless gpgkeys.size == 1
+      gpgout = GPGME.encrypt(gpgkeys,gpgdata)
+      #preceding 00 01 indicates a new seed for the prng encrypted with
+      writeLog("\x00\x01"+Base64::encode64(gpgout))
       puts "OpenCorn::Log initialized"
     end
 
@@ -27,16 +34,6 @@ module OpenCorn
     end
 
     def getRand()
-        if not @seed then
-          @seed = OpenSSL::Random::random_bytes(128)
-          gpgdata = GPGME::Data.from_str(@seed)
-          gpgkeys = GPGME.list_keys(OpenCorn::Config['GPG_LOG_KEYID'])
-          raise "Too many keys for this KeyID" unless gpgkeys.size == 1
-          gpgout = GPGME.encrypt(gpgkeys,gpgdata)
-          #preceding 00 01 indicates a new seed for the prng encrypted with
-          writeLog("\x00\x01"+Base64::encode64(gpgout))
-        end
-
         @seed,out = prng(@seed)
         out
     end
@@ -48,7 +45,8 @@ module OpenCorn
         ctx.key = myrand[16..47] #256bit key
         ctext = ctx.update(msg)+ctx.final()
         out = OpenSSL::HMAC.digest("SHA1",myrand[48..63],ctext)+ctext 
-        #preceding 00 indicates that the base64 string is as symmetric encrypted logentry
+        #preceding 00 indicates that the base64 string is as symmetric
+        #encrypted logentry
         writeLog("\x00"+Base64::encode64(out))
     end
     alias << cryptMsg
