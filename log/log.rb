@@ -17,7 +17,7 @@ module OpenCorn
       gpgkeys = GPGME.list_keys(OpenCorn::Config['GPG_LOG_KEYID'])
       raise "Too many keys for this KeyID" unless gpgkeys.size == 1
       gpgout = GPGME.encrypt(gpgkeys,gpgdata)
-      #preceding 00 01 indicates a new seed for the prng encrypted with
+      #preceding 00 01 indicates a new seed for the prng encrypted with a gpg pubkey
       writeLog("\x00\x01"+Base64::encode64(gpgout))
       puts "OpenCorn::Log initialized"
     end
@@ -39,14 +39,16 @@ module OpenCorn
     end
 
     def cryptMsg(msg)
+        #pad the message to a uniform lenght to beat length based distinquishers
+        #this raises an exception if OpenCorn::Config["LOG_ENTRY_SIZE"] is to small fo rmsg.size+1
+        msg = msg + "\x80" + "\x00" * ((OpenCorn::Config["LOG_ENTRY_SIZE"].to_i - msg.size)  - 1)
         myrand = getRand()
         ctx = OpenSSL::Cipher::AES256.new("OFB")
         ctx.iv  = myrand[0..15]  #128bit iv
         ctx.key = myrand[16..47] #256bit key
         ctext = ctx.update(msg)+ctx.final()
         out = OpenSSL::HMAC.digest("SHA1",myrand[48..63],ctext)+ctext 
-        #preceding 00 indicates that the base64 string is as symmetric
-        #encrypted logentry
+        #preceding 00 indicates that the base64 string is a symmetric encrypted logentry
         writeLog("\x00"+Base64::encode64(out))
     end
     alias << cryptMsg
